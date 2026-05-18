@@ -1,7 +1,8 @@
 <?php
 $msg = "";
+require_once 'connect.php';
+
 if ($_POST) {
-    include "connect.php";
 
     $email = $_POST['email'];
     $senha = $_POST['senha'];
@@ -10,15 +11,21 @@ if ($_POST) {
 
     $hash = password_hash("$senha", PASSWORD_DEFAULT);
 
-    $sql = "INSERT INTO dados (email, senha, nome, cpf) values ('$email', '$hash', '$nome', '$cpf')";
-    mysqli_query($conexao, $sql);
+    $verificar = "SELECT * FROM usuario where cpf = '$cpf' or email = '$email'";
+    $resultado = mysqli_query($conexao, $verificar);
 
-    //executar o comando sql
-    if (mysqli_affected_rows($conexao) > 0) {
-        header("location:index.php"); //voltar para pág. index.php
+    if (mysqli_num_rows($resultado) == 0) {
+        if (mysqli_affected_rows($conexao) > 0) {
+            header("location:index.php"); //voltar para pág. index.php
+        } else {
+            $msg = "<h3> Falha ao cadastrar. </h3>";
+        }
     } else {
-        $msg = "<h3> Falha ao cadastrar. </h3>";
+        $msg = "<h3> CPF ou e-mail já cadastrados. </h3>";
     }
+
+    $sql = "INSERT INTO usuario (email, senha, nome, cpf) values ('$email', '$hash', '$nome', '$cpf')";
+    mysqli_query($conexao, $sql);
 }
 ?>
 <!DOCTYPE html>
