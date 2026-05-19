@@ -1,2 +1,3 @@
-# tcc_inventario
-TCC - Sistema de Inventário para o TI.
+# Sistema de mapeameto de rede com inventário
+* TCC - MNET IFFar
+
