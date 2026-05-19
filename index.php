@@ -1,22 +1,28 @@
 <?php
 $msg = "";
+
 if ($_POST) {
     include "connect.php";
+
+    setcookie("cpf", $_POST['cpf'], time() + 3600);
 
     $cpf = $_POST['cpf'];
     $senha = $_POST['senha'];
 
     $sql = "SELECT * FROM usuario where cpf = '$cpf'";
     $resultado = mysqli_query($conexao, $sql);
-
-    //verifica se o cpf existe
-    if (mysqli_affected_rows($conexao) > 0) {
-        $dados = mysqli_fetch_assoc($resultado);
-        //print_r($dados);
-        if (password_verify("$senha", $dados['senha'])) {
-            $msg = "Login realizado com sucesso!";
-        } else {
-            $msg = "CPF ou senha incorretos!";
+    if (isset($_SESSION['cpf'])) {
+        header("location:home.php");
+    } else {
+        //verifica se o cpf existe
+        if (mysqli_affected_rows($conexao) > 0) {
+            $dados = mysqli_fetch_assoc($resultado);
+            //print_r($dados);
+            if (password_verify("$senha", $dados['senha'])) {
+                header("location:home.php");
+            } else {
+                $msg = "CPF ou senha incorretos!";
+            }
         }
     }
 }
