@@ -13,11 +13,18 @@ if ($_POST) {
 </head>
 
 <body>
-    <h1> MNET -IFFar </h1>
+    <link rel="stylesheet" type="text/css" href="style.css">
 
-    <a href="perfil.php">Perfil</a>
-    <a href="cadastrar_rede.php">Cadastrar Rede</a>
+    <div class="MNET-logo">
+        <img src="2MNET-logo.png" name="MNET Logo" width="150" height="100">
+        <h1> MNET - IFFar </h1>
+    </div>
+    <div class="nav-links">
+        <a href="perfil.php">Perfil</a>
+        <a href="cadastrar_rede.php">Cadastrar Rede</a>
+        <a href="cadastro.php">Cadastrar Usuário</a>
 
+    </div>
     <hr>
     <form action="" method="post" required>
 
