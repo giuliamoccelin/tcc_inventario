@@ -1,0 +1,90 @@
+<?php
+$msg = "";
+if ($_POST) {
+}
+?>
+<!DOCTYPE html>
+<html lang="pt-br">
+<meta charset="utf-8">
+
+<head>
+    <title> MNET-IFFar </title>
+    <link rel="icon" type="image/png" href="2MNET-logo.png">
+</head>
+
+<body>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <div class="topbar">
+        <div class="MNET-logo">
+            <img src="2MNET-logo.png" name="MNET Logo" width="150" height="100">
+            <h1> MNET - IFFar </h1>
+        </div>
+        <div class="nav-links">
+            <a href="admin.php">HOME</a>
+            |
+            <a href="perfil.php">PERFIL</a>
+            |
+            <a href="cadastro_maquina.php">CADASTRARㅤMÁQUINA</a>
+            |
+            <a href="cadastro.php">CADASTRARㅤUSUÁRIO</a>
+            |
+            <a href="listar_usuarios.php">LISTARㅤUSUÁRIOS</a>
+        </div>
+    </div>
+    <hr>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Hostname</th>
+                <th>IPv4</th>
+                <th>MAC</th>
+                <th>Patrimônio</th>
+                <th>Local</th>
+                <th>Sistema Operacional</th>
+                <th>Atividade</th>
+                <th>Data de registro</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            include "connect.php";
+            $sql = "SELECT * FROM maquina";
+            $resultado = mysqli_query($conexao, $sql);
+
+            while ($dados = mysqli_fetch_assoc($resultado)) {
+
+                echo "<tr>";
+                echo "<td><strong>{$dados['id']}</strong></td>";
+                echo "<td>{$dados['hostname']}</td>";
+                echo "<td>{$dados['ipv4']}</td>";
+                echo "<td>{$dados['mac']}</td>";
+                echo "<td>{$dados['patrimonio']}</td>";
+                echo "<td>{$dados['local']}</td>";
+                echo "<td>{$dados['sistema_operacional']}</td>";
+                echo "<td>";
+                if ($dados['atividade'] == 'A') {
+                    echo "Ativo";
+                } else {
+                    echo "Inativo";
+                }
+                echo "</td>";
+                echo "<td>{$dados['data_registro']}</td>";
+                echo "<td>
+                        <div class='opcoes'>
+                            <a href='feditar_maquina.php?id={$dados['id']}' title='Editar'><img src='editar.png' width='18'></a>
+                            <a href='deletar_maquina.php?id={$dados['id']}' onclick='return confirm(\"Deseja excluir esta máquina?\")' title='Excluir'><img src='deletar.png' width='18'></a>
+                        </div>
+                      </td>";
+                echo "</tr>";
+            }
+            ?>
+        </tbody>
+    </table>
+    </div>
+
+</body>
+
+</html>
