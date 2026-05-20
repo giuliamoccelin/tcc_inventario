@@ -1,5 +1,5 @@
-# tcc_inventario
-TCC - Sistema de Inventário para o TI.
+# TCC - Sistema de Inventário para o TI.
+
 O Trabalho consiste no desenvolvimento de um Sistema de Inventário de Equipamentos de TI, projetado especificamente para o contexto do Instituto Federal Farroupilha (IFFar) – Campus Uruguaiana.
 O projeto busca transformar a gestão de ativos tecnológicos de uma tarefa manual e propensa a erros em um processo dinâmico e automatizado.
 Abaixo, os principais pontos abordados pelo trabalho:
