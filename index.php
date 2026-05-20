@@ -37,17 +37,35 @@ if ($_POST) {
 </head>
 
 <body>
-    <h1> MNET -IFFar </h1>
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <div class="MNET-logo">
+        <img src="2MNET-logo.png" name="MNET Logo" width="150" height="100">
+        <h1> MNET - IFFar </h1>
+    </div>
     <hr>
     <form action="" method="post" required>
-        CPF: <br>
-        <input type="text" placeholder="xxx.xxx.xxx-xx" name="cpf" required><br><br>
-        Senha: <br>
-        <input type="password" name="senha" placeholder="senha"><br><br>
+        <div class="fundo-perfil">
+            <div class="card-perfil">
+                <div class="titulo">
+                    <h2>Login</h2>
+                </div>
+                <div class="info">
+                    <?php echo "<p><b>$msg</b></p>"; ?>
+                </div>
 
-        <input type="submit" value="Entrar"><br>
-        <a href='cadastro.php'> Cadastrar</a><br>
-        <?php echo "<h1><b> $msg </h1></b>"; ?>
+                <div class="grupo">
+                    CPF: <br>
+                    <p> <input type="text" placeholder="xxx.xxx.xxx-xx" name="cpf" required></p>
+                </div>
+                <div class="grupo">
+                    Senha: <br>
+                    <p> <input type="password" name="senha" placeholder="senha"></p>
+                </div>
+                <button class="btn-salvar" type="submit">Entrar</button><br>
+            </div>
+
+        </div>
 
     </form>
 
