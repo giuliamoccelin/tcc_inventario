@@ -3,9 +3,10 @@ include('connect.php');
 
 // Verifica se o cookie de identificação existe
 if (!isset($_COOKIE['email'])) {
-    header("Location: admin.php");
+    header("Location: home.php");
     exit();
 }
+
 $email = $_COOKIE['email'];
 $msg = "";
 
@@ -18,7 +19,7 @@ if ($resultado and mysqli_num_rows($resultado) > 0) {
 } else {
     // Caso o CPF do cookie não exista no banco
     setcookie("email", "", time() - 3600, "/"); // Deleta cookie inválido
-    header("Location: admin.php");
+    header("Location: home.php");
     exit();
 }
 
@@ -26,14 +27,13 @@ if ($resultado and mysqli_num_rows($resultado) > 0) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $novo_nome = mysqli_real_escape_string($conexao, $_POST['nome']);
     $novo_email = mysqli_real_escape_string($conexao, $_POST['email']);
-    $novo_cargo = mysqli_real_escape_string($conexao, $_POST['cargo']);
     $nova_senha = $_POST['senha'];
     $confirmar_senha = $_POST['senha_antiga'];
 
     // Validação de Segurança: Só altera se o "senha_antiga" digitada for igual à salva no banco
     if (password_verify($confirmar_senha, $dados['senha'])) {
 
-        $sql_update = "UPDATE usuario SET nome = '$novo_nome', email = '$novo_email', cargo = '$novo_cargo'";
+        $sql_update = "UPDATE usuario SET nome = '$novo_nome', email = '$novo_email'";
         // Se a senha não estiver vazia, adiciona ao comando de atualização
         if (!empty($nova_senha)) {
             $hash = password_hash($nova_senha, PASSWORD_DEFAULT);
@@ -47,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Atualiza as variáveis para refletir na tela imediatamente
             $dados['nome'] = $novo_nome;
             $dados['email'] = $novo_email;
-            $dados['cargo'] = $novo_cargo;
         } else {
             $msg = "Erro técnico ao atualizar banco de dados.";
         }
@@ -75,6 +74,7 @@ if (isset($_POST['excluir'])) {
 }
 
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <meta charset="utf-8">
@@ -92,22 +92,18 @@ if (isset($_POST['excluir'])) {
             <h1> MNET - IFFar </h1>
         </div>
         <div class="nav-links">
-            <a href="admin.php">HOME</a>
+            <a href="home.php">HOME</a>
             |
-            <a href="perfil.php">PERFIL</a>
+            <a href="usuario_perfil.php">PERFIL</a>
             |
-            <a href="cadastro_maquina.php">CADASTRARㅤMÁQUINA</a>
-            |
-            <a href="cadastro.php">CADASTRARㅤUSUÁRIO</a>
-            |
-            <a href="listar_usuarios.php">LISTARㅤUSUÁRIOS</a>
+            <a href="usuario_listar_usuarios.php">LISTARㅤUSUÁRIOS</a>
         </div>
     </div>
     <hr>
     <div class="fundo-perfil">
         <div class="card-perfil">
             <div class="titulo">
-                <h2>Configurações de Perfil (Administrador)</h2>
+                <h2>Configurações de Perfil (Usuário Comum)</h2>
             </div>
             <div class="info">
                 <?php echo "<p><b>$msg</b></p>"; ?>
@@ -121,25 +117,21 @@ if (isset($_POST['excluir'])) {
                     <label>Nome Completo:</label>
                     <p><input type="text" name="nome" value="<?php echo $dados['nome']; ?>"> </p>
                 </div>
-
-                 <div class="grupo">
+                <div class="grupo">
                     Cargo: <br>
-                    <p><select name="cargo" required>
-                            <option value="A">Administrador</option>
-                            <option value="U">Usuário Comum</option>
-                        </select></p>
+                    <p><input type="text" name="cargo" value="<?php if($dados['cargo']== 'A') { echo 'Administrador'; } else { echo 'Usuário Comum'; } ?>" readonly> </p>
                 </div>
-
-                <div class="grupo"></div>
-                <label>Novo E-mail de Contato:</label>
-                <p><input type="email" name="email" value="<?php echo $email; ?>"> </p>
+                <div class="grupo">
+                    <label>Novo E-mail de Contato:</label>
+                    <p><input type="email" name="email" value="<?php echo $email; ?>"> </p>
+                </div>
                 <strong>Confirmação de Segurança:</strong>
                 <div class="info">
                     <p><b>Para autorizar as mudanças, você deve confirmar sua senha registrada anteriormente.</b></p>
                 </div>
                 <div class="grupo">
                     <label>Senha Atual:</label>
-                    <p><input type="password" name="senha_antiga" placeholder="Digite sua senha atual para confirmar" required> </p>
+                    <p><input type="password" name="senha_atual" placeholder="Digite sua senha atual para confirmar" required> </p>
                 </div>
                 <div class="grupo">
                     <label>Nova Senha:</label>
@@ -147,9 +139,8 @@ if (isset($_POST['excluir'])) {
                 </div>
                 <button type="submit" class="btn-salvar">Salvar Alterações</button><br>
                 <button type="submit" class="btn-excluir" name="excluir">Excluir Conta Permanentemente</button>
+            </form>
         </div>
-    </div>
-    </form>
 
 </body>
 

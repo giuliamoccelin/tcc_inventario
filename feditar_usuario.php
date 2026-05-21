@@ -9,8 +9,8 @@ if (!isset($_COOKIE['email'])) {
 $email = $_COOKIE['email'];
 $msg = "";
 
-// 1. Busca os dados atuais do usuário usando o CPF do cookie
-$sql = "SELECT nome, cpf, email, senha, cargo FROM usuario WHERE email = '$email'";
+// 1. Busca os dados atuais do usuário usando o email do cookie
+$sql = "SELECT nome, cpf, email, cargo FROM usuario WHERE email = '$email'";
 $resultado = mysqli_query($conexao, $sql);
 
 if ($resultado and mysqli_num_rows($resultado) > 0) {
@@ -24,15 +24,11 @@ if ($resultado and mysqli_num_rows($resultado) > 0) {
 
 // 2. Processa a atualização quando o formulário é enviado
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $novo_cpf = mysqli_real_escape_string($conexao, $_POST['cpf']);
     $novo_nome = mysqli_real_escape_string($conexao, $_POST['nome']);
     $novo_email = mysqli_real_escape_string($conexao, $_POST['email']);
     $novo_cargo = mysqli_real_escape_string($conexao, $_POST['cargo']);
-    $nova_senha = $_POST['senha'];
-    $confirmar_senha = $_POST['senha_antiga'];
-
-    // Validação de Segurança: Só altera se o "senha_antiga" digitada for igual à salva no banco
-    if (password_verify($confirmar_senha, $dados['senha'])) {
-
+   
         $sql_update = "UPDATE usuario SET nome = '$novo_nome', email = '$novo_email', cargo = '$novo_cargo'";
         // Se a senha não estiver vazia, adiciona ao comando de atualização
         if (!empty($nova_senha)) {
@@ -43,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $sql_update .= " WHERE email = '$email'";
 
         if (mysqli_query($conexao, $sql_update)) {
-            $msg = "Perfil atualizado com sucesso!";
+            $msg = "Usuario atualizado com sucesso!";
             // Atualiza as variáveis para refletir na tela imediatamente
             $dados['nome'] = $novo_nome;
             $dados['email'] = $novo_email;
@@ -51,27 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             $msg = "Erro técnico ao atualizar banco de dados.";
         }
-    } else {
-        $msg = "Confirmação falhou: A senha antiga não confere";
-    }
-}
-
-//excluir conta permanentemente
-if (isset($_POST['excluir'])) {
-    $confirmar_senha = $_POST['senha_antiga'];
-
-    if (password_verify($confirmar_senha, $dados['senha'])) {
-        $sql_delete = "DELETE FROM usuario WHERE email = '$email'";
-        if (mysqli_query($conexao, $sql_delete)) {
-            setcookie("email", "", time() - 3600, "/"); // Deleta cookie
-            header("Location: index.php");
-            exit();
-        } else {
-            $msg = "Erro técnico ao excluir conta.";
-        }
-    } else {
-        $msg = "Confirmação falhou: A senha antiga não confere";
-    }
 }
 
 ?>
@@ -115,14 +90,14 @@ if (isset($_POST['excluir'])) {
             <form method="POST">
                 <div class="grupo">
                     <label>CPF:</label>
-                    <p> <input type="text" name="cpf" value="<?php echo $dados['cpf']; ?>" readonly> </p>
+                    <p> <input type="text" name="cpf" value="<?php echo $dados['cpf']; ?>" > </p>
                 </div>
                 <div class="grupo">
                     <label>Nome Completo:</label>
                     <p><input type="text" name="nome" value="<?php echo $dados['nome']; ?>"> </p>
                 </div>
 
-                 <div class="grupo">
+                <div class="grupo">
                     Cargo: <br>
                     <p><select name="cargo" required>
                             <option value="A">Administrador</option>
@@ -133,20 +108,8 @@ if (isset($_POST['excluir'])) {
                 <div class="grupo"></div>
                 <label>Novo E-mail de Contato:</label>
                 <p><input type="email" name="email" value="<?php echo $email; ?>"> </p>
-                <strong>Confirmação de Segurança:</strong>
-                <div class="info">
-                    <p><b>Para autorizar as mudanças, você deve confirmar sua senha registrada anteriormente.</b></p>
-                </div>
-                <div class="grupo">
-                    <label>Senha Atual:</label>
-                    <p><input type="password" name="senha_antiga" placeholder="Digite sua senha atual para confirmar" required> </p>
-                </div>
-                <div class="grupo">
-                    <label>Nova Senha:</label>
-                    <p><input type="password" name="senha" placeholder="Deixe vazio para manter"> </p>
-                </div>
+                
                 <button type="submit" class="btn-salvar">Salvar Alterações</button><br>
-                <button type="submit" class="btn-excluir" name="excluir">Excluir Conta Permanentemente</button>
         </div>
     </div>
     </form>
