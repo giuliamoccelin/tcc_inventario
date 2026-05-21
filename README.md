@@ -1,4 +1,4 @@
-# TCC - Sistema de Inventário para o TI.
+# Sistema de mapeameto de rede com inventário MNET - IFFar
 
 O Trabalho consiste no desenvolvimento de um Sistema de Inventário de Equipamentos de TI, projetado especificamente para o contexto do Instituto Federal Farroupilha (IFFar) – Campus Uruguaiana.
 O projeto busca transformar a gestão de ativos tecnológicos de uma tarefa manual e propensa a erros em um processo dinâmico e automatizado.
@@ -21,9 +21,7 @@ Descoberta Automática: Utilização da ferramenta Nmap para escanear a rede e i
 O projeto preza pelo baixo custo e eficiência, utilizando exclusivamente ferramentas de software livre (Open Source), o que é ideal para uma instituição pública. As tecnologias incluem:
 
 Linguagens: PHP (Backend), HTML, CSS e Bootstrap (Frontend).
-
-]Banco de Dados: MySQL (armazenamento centralizado).
-
+Banco de Dados: MySQL (armazenamento centralizado).
 Servidor e Ferramentas: WAMP para servidor local e Nmap para a varredura lógica da rede.
 
 4. Fundamentação Teórica e IoT
@@ -33,9 +31,8 @@ O TCC é fundamentado em pesquisas recentes, como a dissertação de Welber Sant
 5. Funcionalidades do Sistema
 
 Dashboard Administrativo: Exibição de indicadores críticos, como o número total de máquinas e tipos de redes controladas.
-
 Gestão de Manutenção: Registro de alterações e reparos realizados nos equipamentos.
-
 Segurança e Governança: Classificação de ativos por criticidade e alinhamento com boas práticas de governança de TI na administração pública.
 
 Em suma, o trabalho não busca apenas criar uma lista de equipamentos, mas estabelecer um instrumento estratégico de gestão e segurança, otimizando o tempo da equipe técnica e reduzindo desperdícios institucionais.
+
