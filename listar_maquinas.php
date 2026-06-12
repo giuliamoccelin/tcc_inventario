@@ -1,0 +1,78 @@
+<?php
+include "connect.php";
+$msg = "";
+session_start();
+
+// verifica se existe uma sessão válida, senão redireciona para a página de login
+if (!isset($_SESSION['email'])) {
+    header('Location: index.php?msg=Acesso negado.');
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <title> MNET-IFFar </title>
+    <link rel="icon" type="image/png" href="2MNET-logo.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <?php include "menu.php"; // Inclui o menu de navegação 
+    ?>
+    <div class="fundo-tabela">
+        <div class="card-tabela">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hostname</th>
+                        <th>IPv4</th>
+                        <th>MAC</th>
+                        <th>Patrimônio</th>
+                        <th>Local</th>
+                        <th>Sistema Operacional</th>
+                        <th>Marca</th>
+                        <th>Equipamento</th>
+                        <th>Atividade</th>
+                        <th>Data de registro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    include "connect.php";
+                    $sql = "SELECT * FROM equipamento ORDER BY id DESC";
+                    $resultado = mysqli_query($conexao, $sql);
+
+                    while ($dados = mysqli_fetch_assoc($resultado)) {
+
+                        echo "<tr>";
+                        echo "<td>{$dados['hostname']}</td>";
+                        echo "<td>{$dados['ipv4']}</td>";
+                        echo "<td>{$dados['mac']}</td>";
+                        echo "<td>{$dados['patrimonio']}</td>";
+                        echo "<td>{$dados['local']}</td>";
+                        echo "<td>{$dados['sistema_operacional']}</td>";
+                        echo "<td>{$dados['marca']}</td>";
+                        echo "<td>{$dados['tipo_equipamento']}</td>";
+                        echo "<td>{$dados['atividade']}</td>";
+                        echo "<td>{$dados['data_registro']}</td>";
+                        echo "<td>
+                        <div class='opcoes'>
+                            <a href='feditar_maquina.php?id={$dados['id']}' title='Editar'><img src='editar.png' width='18'></a>
+                            <a href='cadastro_manutencao.php?id={$dados['id']}&hostname={$dados['hostname']}&mac={$dados['mac']}' title='Registrar manutenção'><img src='manutenção.png' width='18'></a>
+                            <a href='deletar_maquina.php?id={$dados['id']}' onclick='return confirm(\"Deseja excluir este equipamento?\")' title='Excluir'><img src='deletar.png' width='18'></a>
+                        </div>
+                      </td>";
+                        echo "</tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

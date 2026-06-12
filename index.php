@@ -1,10 +1,13 @@
 <?php
 $msg = "";
+session_start();
+
+if ($_GET) {
+    $msg = $_GET['msg'];
+}
 
 if ($_POST) {
     include "connect.php";
-
-    setcookie("email", $_POST['email'], time() + 3600);
 
     $email = $_POST['email'];
     $senha = $_POST['senha'];
@@ -14,9 +17,11 @@ if ($_POST) {
 
     //verifica se o e-mail existe
     if (mysqli_affected_rows($conexao) > 0) {
+        // armazena os dados do usuário em um array associativo
         $dados = mysqli_fetch_assoc($resultado);
         //print_r($dados);
         if (password_verify("$senha", $dados['senha'])) {
+            $_SESSION['email'] = $email;
             if ($dados['cargo'] == "A") {
                 header("location:admin.php");
             } else {
@@ -25,6 +30,8 @@ if ($_POST) {
         } else {
             $msg = "E-mail ou senha incorretos!";
         }
+    } else {
+        $msg = "Você não tem cadastro! <br> Converse com o administrador para criar uma conta.";
     }
 }
 
@@ -32,17 +39,16 @@ if ($_POST) {
 
 <!DOCTYPE html>
 <html lang="pt-br">
-<meta charset="utf-8">
 
 <head>
     <title> MNET-IFFar </title>
     <link rel="icon" type="image/png" href="2MNET-logo.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
 
 </head>
 
 <body>
-    <link rel="stylesheet" type="text/css" href="style.css">
-
     <div class="MNET-logo">
         <style>
             .MNET-logo {
@@ -51,10 +57,11 @@ if ($_POST) {
                 font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
                 color: rgb(35, 62, 132);
                 justify-content: center;
+                padding: 20px;
             }
         </style>
-        <img src="2MNET-logo.png" name="MNET Logo" width="150" height="100">
-        <h1> MNET - IFFar </h1>
+        <img src="2MNET-logo.png" name="MNET Logo" width="110" height="100">
+        <h1>ㅤMNET - IFFar </h1>
     </div>
     <hr>
     <form action="" method="post" required>

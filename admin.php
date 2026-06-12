@@ -1,90 +1,168 @@
 <?php
+include "connect.php";
 $msg = "";
-if ($_POST) {
+session_start();
+
+// verifica se existe uma sessão válida, senão redireciona para a página de login
+if (!isset($_SESSION['email'])) {
+    header('Location: index.php?msg=Acesso negado.');
+    exit();
+}
+// Consulta para obter o nome do usuário logado
+$sql = "SELECT nome FROM usuario where email = '$_SESSION[email]'";
+$resultado = mysqli_query($conexao, $sql);
+$dadosMenu = mysqli_fetch_assoc($resultado);
+
+// Inicializa as variáveis para garantir que o gráfico não quebre se o banco estiver vazio
+$total_adm = 0;
+$total_uc = 0;
+$total_uso = 0;
+$total_disponivel = 0;
+$total_descarte = 0;
+$total_manutencao = 0;
+
+$sql = "SELECT COUNT(*) as total_adm FROM usuario WHERE cargo = 'A'";
+$resultado_adm = mysqli_query($conexao, $sql);
+if ($resultado_adm) {
+    $row = mysqli_fetch_assoc($resultado_adm);
+    $total_adm = (int)$row['total_adm'];
+}
+
+// Consulta para contar o número de usuários comuns
+$sql = "SELECT COUNT(*) as total_uc FROM usuario WHERE cargo = 'U'";
+$resultado_uc = mysqli_query($conexao, $sql);
+if ($resultado_uc) {
+    $row = mysqli_fetch_assoc($resultado_uc);
+    $total_uc = (int)$row['total_uc'];
+}
+
+// Consulta para contar o número total equipamentos em uso
+$sql = "SELECT COUNT(*) as total_uso FROM equipamento where atividade = 'Em uso'";
+$resultado_uso = mysqli_query($conexao, $sql);
+if ($resultado_uso) {
+    $row = mysqli_fetch_assoc($resultado_uso);
+    $total_uso = (int)$row['total_uso'];
+}
+
+// Consulta para contar o número total equipamentos disponiveis
+$sql = "SELECT COUNT(*) as total_disponivel FROM equipamento where atividade = 'Disponível'";
+$resultado_disponivel = mysqli_query($conexao, $sql);
+if ($resultado_disponivel) {
+    $row = mysqli_fetch_assoc($resultado_disponivel);
+    $total_disponivel = (int)$row['total_disponivel'];
+}
+
+// Consulta para contar o número total equipamentos em descarte
+$sql = "SELECT COUNT(*) as total_descarte FROM equipamento where atividade = 'Descarte'";
+$resultado_descarte = mysqli_query($conexao, $sql);
+if ($resultado_descarte) {
+    $row = mysqli_fetch_assoc($resultado_descarte);
+    $total_descarte = (int)$row['total_descarte'];
+}
+
+// Consulta para contar o número total equipamentos em manutenção
+$sql = "SELECT COUNT(*) as total_manutencao FROM equipamento where atividade = 'Manutenção'";
+$resultado_manutencao = mysqli_query($conexao, $sql);
+if ($resultado_manutencao) {
+    $row = mysqli_fetch_assoc($resultado_manutencao);
+    $total_manutencao = (int)$row['total_manutencao'];
 }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
-<meta charset="utf-8">
 
 <head>
     <title> MNET-IFFar </title>
     <link rel="icon" type="image/png" href="2MNET-logo.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <div class="topbar">
-        <div class="MNET-logo">
-            <img src="2MNET-logo.png" name="MNET Logo" width="150" height="100">
-            <h1> MNET - IFFar </h1>
+    <?php include "menu.php"; ?>
+    
+    <form action="" method="post" required>
+        <div class="fundo-tabela">
+            <div class="card-tabela">
+                <div class="titulo">
+                    <h2><?php echo "Bem-vindo, " . $dadosMenu['nome'] . "!"; ?></h2>
+                </div>
+                
+                <div class="container-graficos">
+                    <div class="card-grafico">
+                        <canvas id="graficoUsuarios"></canvas>
+                    </div>
+                    
+                    <div class="card-grafico">
+                        <canvas id="graficoEquipamentos"></canvas>
+                    </div>
+                </div>
+
+            </div>
         </div>
-        <div class="nav-links">
-            <a href="admin.php">HOME</a>
-            |
-            <a href="perfil.php">PERFIL</a>
-            |
-            <a href="cadastro_maquina.php">CADASTRARㅤMÁQUINA</a>
-            |
-            <a href="cadastro.php">CADASTRARㅤUSUÁRIO</a>
-            |
-            <a href="listar_usuarios.php">LISTARㅤUSUÁRIOS</a>
-        </div>
-    </div>
-    <hr>
+    </form>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Hostname</th>
-                <th>IPv4</th>
-                <th>MAC</th>
-                <th>Patrimônio</th>
-                <th>Local</th>
-                <th>Sistema Operacional</th>
-                <th>Atividade</th>
-                <th>Data de registro</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            include "connect.php";
-            $sql = "SELECT * FROM maquina";
-            $resultado = mysqli_query($conexao, $sql);
+    <script>
 
-            while ($dados = mysqli_fetch_assoc($resultado)) {
-
-                echo "<tr>";
-                echo "<td><strong>{$dados['id']}</strong></td>";
-                echo "<td>{$dados['hostname']}</td>";
-                echo "<td>{$dados['ipv4']}</td>";
-                echo "<td>{$dados['mac']}</td>";
-                echo "<td>{$dados['patrimonio']}</td>";
-                echo "<td>{$dados['local']}</td>";
-                echo "<td>{$dados['sistema_operacional']}</td>";
-                echo "<td>";
-                if ($dados['atividade'] == 'A') {
-                    echo "Ativo";
-                } else {
-                    echo "Inativo";
+        // 1. Gráfico de Usuários
+        const ctxUsuarios = document.getElementById('graficoUsuarios').getContext('2d');
+        const graficoUsuarios = new Chart(ctxUsuarios, {
+            type: 'doughnut', // Tipo Donut (Rosca)
+            data: {
+                labels: ['Administradores', 'Usuários Comuns'], 
+                datasets: [{
+                    data: [<?php echo $total_adm; ?>, <?php echo $total_uc; ?>],
+                    backgroundColor: ['#4e73df', '#1cc88a'], 
+                    hoverBackgroundColor: ['#2e59d9', '#17a673'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: {
+                        display: true,
+                        text: 'Controle de Usuários', // Modifique aqui o Título Geral do gráfico
+                        font: { size: 16 }
+                    }
                 }
-                echo "</td>";
-                echo "<td>{$dados['data_registro']}</td>";
-                echo "<td>
-                        <div class='opcoes'>
-                            <a href='feditar_maquina.php?id={$dados['id']}' title='Editar'><img src='editar.png' width='18'></a>
-                            <a href='deletar_maquina.php?id={$dados['id']}' onclick='return confirm(\"Deseja excluir esta máquina?\")' title='Excluir'><img src='deletar.png' width='18'></a>
-                        </div>
-                      </td>";
-                echo "</tr>";
             }
-            ?>
-        </tbody>
-    </table>
-    </div>
+        });
 
+        // 2. Gráfico de Equipamentos
+        const ctxEquipamentos = document.getElementById('graficoEquipamentos').getContext('2d');
+        const graficoEquipamentos = new Chart(ctxEquipamentos, {
+            type: 'doughnut',
+            data: {
+                labels: ['Em uso', 'Disponível', 'Descarte', 'Manutenção'],
+                datasets: [{
+                    data: [
+                        <?php echo $total_uso; ?>, 
+                        <?php echo $total_disponivel; ?>, 
+                        <?php echo $total_descarte; ?>, 
+                        <?php echo $total_manutencao; ?>
+                    ],
+                    backgroundColor: ['#f6c23e', '#1cc88a', '#e74a3b', '#36b9cc'],
+                    hoverBackgroundColor: ['#dfa515', '#17a673', '#be2617', '#258391'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: {
+                        display: true,
+                        text: 'Situação dos Equipamentos', // Modifique aqui o Título Geral do gráfico
+                        font: { size: 16 }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
-
 </html>
