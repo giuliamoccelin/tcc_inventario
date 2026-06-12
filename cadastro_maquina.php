@@ -1,7 +1,14 @@
 <?php
+include "connect.php";
 $msg = "";
+session_start();
+
+// verifica se existe uma sessão válida, senão redireciona para a página de login
+if (!isset($_SESSION['email'])) {
+    header('Location: index.php?msg=Acesso negado.');
+    exit();
+}
 if ($_POST) {
-    include "connect.php";
     $hostname = $_POST['hostname'];
     $ipv4 = $_POST['ipv4'];
     $mac = $_POST['mac'];
@@ -9,12 +16,14 @@ if ($_POST) {
     $local = $_POST['local'];
     $so = $_POST['so'];
     $atividade = $_POST['atividade'];
+    $marca = $_POST['marca'];
+    $tipo_equipamento = $_POST['tipo_equipamento'];
 
-    $verificar = "SELECT * FROM maquina where hostname = '$hostname' or mac = '$mac'";
+    $verificar = "SELECT * FROM equipamento where hostname = '$hostname' or mac = '$mac'";
     $resultado = mysqli_query($conexao, $verificar);
 
     if (mysqli_num_rows($resultado) == 0) {
-        $sql = "INSERT INTO maquina (hostname, ipv4, mac, patrimonio, local, sistema_operacional, atividade) VALUES ('$hostname', '$ipv4', '$mac', '$pat', '$local', '$so', '$atividade')";
+        $sql = "INSERT INTO equipamento (hostname, ipv4, mac, patrimonio, local, sistema_operacional, atividade, marca, tipo_equipamento) VALUES ('$hostname', '$ipv4', '$mac', '$pat', '$local', '$so', '$atividade', '$marca', '$tipo_equipamento')";
         mysqli_query($conexao, $sql);
         if (mysqli_affected_rows($conexao) > 0) {
             $msg = "<h3> Máquina cadastrada com sucesso! </h3>";
@@ -28,38 +37,23 @@ if ($_POST) {
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
-<meta charset="utf-8">
 
 <head>
     <title> MNET-IFFar </title>
     <link rel="icon" type="image/png" href="2MNET-logo.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
+
 </head>
 
 <body>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <div class="topbar">
-        <div class="MNET-logo">
-            <img src="2MNET-logo.png" name="MNET Logo" width="150" height="100">
-            <h1> MNET - IFFar </h1>
-        </div>
-        <div class="nav-links">
-            <a href="admin.php">HOME</a>
-            |
-            <a href="perfil.php">PERFIL</a>
-            |
-            <a href="cadastro_maquina.php">CADASTRARㅤMÁQUINA</a>
-            |
-            <a href="cadastro.php">CADASTRARㅤUSUÁRIO</a>
-            |
-            <a href="listar_usuarios.php">LISTARㅤUSUÁRIOS</a>
-        </div>
-    </div>
-    <hr>
+    <?php include "menu.php"; // Inclui o menu de navegação 
+    ?>
     <form action="" method="post" required>
         <div class="fundo-perfil">
             <div class="card-perfil">
                 <div class="titulo">
-                    <h2>Cadastro de Máquina - Manual</h2>
+                    <h2>Cadastro de Equipamento - Manual</h2>
                 </div>
                 <div class="info">
                     <?php echo "<p><b>$msg</b></p>"; ?>
@@ -87,8 +81,10 @@ if ($_POST) {
                 <div class="grupo">
                     Atividade: <br>
                     <p><select name="atividade" required>
-                            <option value="A">Ativa</option>
-                            <option value="I">Inativa</option>
+                            <option value='Em uso'>Em uso</option>
+                            <option value='Disponível'>Disponível</option>
+                            <option value='Descarte'>Descarte</option>
+                            <option value='Manutenção'>Manutenção</option>
                         </select></p>
 
                 </div>
@@ -96,7 +92,15 @@ if ($_POST) {
                     Local: <br>
                     <p><input type="text" name="local" placeholder="Laboratório 1"></p>
                 </div>
-                <button class="btn-salvar" type="submit">Cadastrar Máquina</button><br>
+                <div class="grupo">
+                    Marca: <br>
+                    <p><input type="text" name="marca" placeholder="Ex.: Dell"></p>
+                </div>
+                <div class="grupo">
+                    Tipo de Equipamento: <br>
+                    <p><input type="text" name="tipo_equipamento" placeholder="Ex.: Notebook"></p>
+                </div>
+                <button class="btn-salvar" type="submit">Cadastrar Equipamento</button><br>
             </div>
 
         </div>

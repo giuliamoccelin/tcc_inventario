@@ -8,20 +8,20 @@ if(!isset($_SESSION['email'])){
     header('Location: index.php?msg=Acesso negado.');
     exit();
 }
+// recebe id via link
+$id= $_GET['id'];
 
-
-// DELETE - deleta o usuario com o email informado
-$sql = "DELETE FROM usuario WHERE email = '$email'";
+// DELETE - deleta o contato com o ID informado
+$sql = "DELETE FROM maquina WHERE id = $id";
 mysqli_query($conexao, $sql);
 
 //executar o comando sql
 if (mysqli_affected_rows($conexao) > 0) {
-    setcookie("email", "", time() - 3600, "/"); // Deleta cookie
-    header("Location: listar_usuarios.php");
-    exit();
+    header("Location: listar_maquinas.php");
 } else {
-    $msg = 'Falha ao deletar';
+    echo "<h3> Falha ao deletar. </h3>";
 }
 
 //refazer o codigo
+
 ?>

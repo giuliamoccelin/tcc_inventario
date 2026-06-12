@@ -6,8 +6,7 @@ $bdSenha = ''; // sem senha
 $bdBanco = 'tccinventario_ti';
 
 mysqli_report(MYSQLI_REPORT_OFF);
-$conexao = @mysqli_connect($bdServidor, $bdUsuario, $bdSenha, 
-$bdBanco);
+$conexao = @mysqli_connect($bdServidor, $bdUsuario, $bdSenha, $bdBanco);
 
 if (!$conexao) {
     echo('Erro de conexão: ' . 

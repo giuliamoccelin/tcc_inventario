@@ -1,30 +1,23 @@
 <?php
 include('connect.php');
-
-// Verifica se o cookie de identificação existe
-if (!isset($_COOKIE['email'])) {
-    header("Location: home.php");
+session_start();
+// Verifica se a sessão de identificação existe
+if (!isset($_SESSION['email'])) {
+    header("Location: index.php?msg=Acesso negado.");
     exit();
 }
-
-$email = $_COOKIE['email'];
+$email = $_SESSION['email'];
 $msg = "";
 
-// 1. Busca os dados atuais do usuário usando o CPF do cookie
-$sql = "SELECT nome, cpf, email, senha, cargo FROM usuario WHERE email = '$email'";
+// 1. Busca os dados atuais do usuário usando o email da sessão
+$sql = "SELECT * FROM usuario WHERE email = '$email'";
 $resultado = mysqli_query($conexao, $sql);
+$dados = mysqli_fetch_assoc($resultado);
 
-if ($resultado and mysqli_num_rows($resultado) > 0) {
-    $dados = mysqli_fetch_assoc($resultado);
-} else {
-    // Caso o CPF do cookie não exista no banco
-    setcookie("email", "", time() - 3600, "/"); // Deleta cookie inválido
-    header("Location: home.php");
-    exit();
-}
 
 // 2. Processa a atualização quando o formulário é enviado
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if (isset($_POST['atualizar'])) {
+    $at_cpf = mysqli_real_escape_string($conexao, $_POST['cpf']);
     $novo_nome = mysqli_real_escape_string($conexao, $_POST['nome']);
     $novo_email = mysqli_real_escape_string($conexao, $_POST['email']);
     $nova_senha = $_POST['senha'];
@@ -33,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Validação de Segurança: Só altera se o "senha_antiga" digitada for igual à salva no banco
     if (password_verify($confirmar_senha, $dados['senha'])) {
 
-        $sql_update = "UPDATE usuario SET nome = '$novo_nome', email = '$novo_email'";
+        $sql_update = "UPDATE usuario SET cpf = '$at_cpf', nome = '$novo_nome', email = '$novo_email'";
         // Se a senha não estiver vazia, adiciona ao comando de atualização
         if (!empty($nova_senha)) {
             $hash = password_hash($nova_senha, PASSWORD_DEFAULT);
@@ -45,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (mysqli_query($conexao, $sql_update)) {
             $msg = "Perfil atualizado com sucesso!";
             // Atualiza as variáveis para refletir na tela imediatamente
+            $dados['cpf'] = $at_cpf;
             $dados['nome'] = $novo_nome;
             $dados['email'] = $novo_email;
         } else {
@@ -62,7 +56,7 @@ if (isset($_POST['excluir'])) {
     if (password_verify($confirmar_senha, $dados['senha'])) {
         $sql_delete = "DELETE FROM usuario WHERE email = '$email'";
         if (mysqli_query($conexao, $sql_delete)) {
-            setcookie("email", "", time() - 3600, "/"); // Deleta cookie
+            session_destroy();
             header("Location: index.php");
             exit();
         } else {
@@ -75,31 +69,21 @@ if (isset($_POST['excluir'])) {
 
 ?>
 
+
 <!DOCTYPE html>
 <html lang="pt-br">
-<meta charset="utf-8">
 
 <head>
     <title> MNET-IFFar </title>
     <link rel="icon" type="image/png" href="2MNET-logo.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
+
 </head>
 
 <body>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <div class="topbar">
-        <div class="MNET-logo">
-            <img src="2MNET-logo.png" name="MNET Logo" width="150" height="100">
-            <h1> MNET - IFFar </h1>
-        </div>
-        <div class="nav-links">
-            <a href="home.php">HOME</a>
-            |
-            <a href="usuario_perfil.php">PERFIL</a>
-            |
-            <a href="usuario_listar_usuarios.php">LISTARㅤUSUÁRIOS</a>
-        </div>
-    </div>
-    <hr>
+    <?php include "menu_usuario.php"; // Inclui o menu de navegação 
+    ?>
     <div class="fundo-perfil">
         <div class="card-perfil">
             <div class="titulo">
@@ -111,7 +95,7 @@ if (isset($_POST['excluir'])) {
             <form method="POST">
                 <div class="grupo">
                     <label>CPF:</label>
-                    <p> <input type="text" name="cpf" value="<?php echo $dados['cpf']; ?>" readonly> </p>
+                    <p> <input type="text" name="cpf" value="<?php echo $dados['cpf']; ?>"> </p>
                 </div>
                 <div class="grupo">
                     <label>Nome Completo:</label>
@@ -119,7 +103,11 @@ if (isset($_POST['excluir'])) {
                 </div>
                 <div class="grupo">
                     Cargo: <br>
-                    <p><input type="text" name="cargo" value="<?php if($dados['cargo']== 'A') { echo 'Administrador'; } else { echo 'Usuário Comum'; } ?>" readonly> </p>
+                    <p><input type="text" name="cargo" value="<?php if ($dados['cargo'] == 'A') {
+                                                                    echo 'Administrador';
+                                                                } else {
+                                                                    echo 'Usuário Comum';
+                                                                } ?>" readonly> </p>
                 </div>
                 <div class="grupo">
                     <label>Novo E-mail de Contato:</label>
@@ -137,7 +125,7 @@ if (isset($_POST['excluir'])) {
                     <label>Nova Senha:</label>
                     <p><input type="password" name="senha" placeholder="Deixe vazio para manter"> </p>
                 </div>
-                <button type="submit" class="btn-salvar">Salvar Alterações</button><br>
+                <button type="submit" class="btn-salvar" name="atualizar">Salvar Alterações</button><br>
                 <button type="submit" class="btn-excluir" name="excluir">Excluir Conta Permanentemente</button>
             </form>
         </div>
