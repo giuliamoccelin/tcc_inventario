@@ -39,11 +39,8 @@ if ($_POST) {
 <html lang="pt-br">
 
 <head>
-    <title> MNET-IFFar </title>
-    <link rel="icon" type="image/png" href="2MNET-logo.png">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8">
-
+    <?php include "head.php"; // Inclui o head de navegação 
+    ?>
 </head>
 
 <body>

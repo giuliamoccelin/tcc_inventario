@@ -12,7 +12,7 @@ if(!isset($_SESSION['email'])){
 $id= $_GET['id'];
 
 // DELETE - deleta o contato com o ID informado
-$sql = "DELETE FROM maquina WHERE id = $id";
+$sql = "DELETE FROM equipamento WHERE id = $id";
 mysqli_query($conexao, $sql);
 
 //executar o comando sql

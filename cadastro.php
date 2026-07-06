@@ -4,7 +4,7 @@ $msg = "";
 session_start();
 
 // verifica se existe uma sessão válida, senão redireciona para a página de login
-if(!isset($_SESSION['email'])){
+if (!isset($_SESSION['email'])) {
     header('Location: index.php?msg=Acesso negado.');
     exit();
 }
@@ -21,9 +21,29 @@ if ($_POST) {
 
     $verificar = "SELECT * FROM usuario where cpf = '$cpf' or email = '$email'";
     $resultado = mysqli_query($conexao, $verificar);
+    /* Formata um CPF para o padrão 000.000.000-00
+     * Aceita entrada com ou sem máscara*/
+    function formatarCPF($cpf)
+    {
+        // Remove tudo que não for número
+        $cpf = preg_replace('/\D/', '', $cpf);
+
+        // Verifica se tem 11 dígitos
+        if (strlen($cpf) !== 11) {
+            return false; // CPF inválido
+        }
+
+        // Retorna no formato padrão
+        return substr($cpf, 0, 3) . '.' .
+            substr($cpf, 3, 3) . '.' .
+            substr($cpf, 6, 3) . '-' .
+            substr($cpf, 9, 2);
+    }
+    $cpfFormatado = formatarCPF($cpf);
+
 
     if (mysqli_num_rows($resultado) == 0) {
-        $sql = "INSERT INTO usuario (email, senha, nome, cpf, cargo) values ('$email', '$hash', '$nome', '$cpf', '$cargo')";
+        $sql = "INSERT INTO usuario (email, senha, nome, cpf, cargo) values ('$email', '$hash', '$nome', '$cpfFormatado', '$cargo')";
         mysqli_query($conexao, $sql);
         if (mysqli_affected_rows($conexao) > 0) {
             $msg = "<h3> Usuário cadastrado com sucesso! </h3>";
@@ -39,15 +59,12 @@ if ($_POST) {
 <html lang="pt-br">
 
 <head>
-    <title> MNET-IFFar </title>
-    <link rel="icon" type="image/png" href="2MNET-logo.png">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8">
-
+    <?php include "head.php"; // Inclui o head de navegação 
+    ?>
 </head>
 
 <body>
-   <?php include "menu.php"; // Inclui o menu de navegação 
+    <?php include "menu.php"; // Inclui o menu de navegação 
     ?>
     <form action="cadastro.php" method="post" required>
         <div class="fundo-perfil">
@@ -64,6 +81,9 @@ if ($_POST) {
                 </div>
                 <div class="grupo">
                     CPF: <br>
+                    <div class="info-escritas">
+                       <p><b>Não é necessário inserir pontos ou traço, apenas os números. O CPF será formatado automaticamente.</b></p>
+                    </div>
                     <p><input type="text" placeholder="xxx.xxx.xxx-xx" name="cpf" required></p>
                 </div>
                 <div class="grupo">
@@ -79,6 +99,7 @@ if ($_POST) {
                 </div>
                 <div class="grupo">
                     Senha: <br>
+<!-- Colocar as informações que são necessárias para a criação da senha-->
                     <p><input type="password" name="senha" required></p>
                 </div>
                 <button class="btn-salvar" type="submit">Cadastrar</button><br>

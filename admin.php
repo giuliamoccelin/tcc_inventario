@@ -72,11 +72,8 @@ if ($resultado_manutencao) {
 <html lang="pt-br">
 
 <head>
-    <title> MNET-IFFar </title>
-    <link rel="icon" type="image/png" href="2MNET-logo.png">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <?php include "head.php"; // Inclui o head de navegação 
+    ?>
 </head>
 
 <body>
@@ -91,10 +88,6 @@ if ($resultado_manutencao) {
                 
                 <div class="container-graficos">
                     <div class="card-grafico">
-                        <canvas id="graficoUsuarios"></canvas>
-                    </div>
-                    
-                    <div class="card-grafico">
                         <canvas id="graficoEquipamentos"></canvas>
                     </div>
                 </div>
@@ -105,34 +98,7 @@ if ($resultado_manutencao) {
 
     <script>
 
-        // 1. Gráfico de Usuários
-        const ctxUsuarios = document.getElementById('graficoUsuarios').getContext('2d');
-        const graficoUsuarios = new Chart(ctxUsuarios, {
-            type: 'doughnut', // Tipo Donut (Rosca)
-            data: {
-                labels: ['Administradores', 'Usuários Comuns'], 
-                datasets: [{
-                    data: [<?php echo $total_adm; ?>, <?php echo $total_uc; ?>],
-                    backgroundColor: ['#4e73df', '#1cc88a'], 
-                    hoverBackgroundColor: ['#2e59d9', '#17a673'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: {
-                        display: true,
-                        text: 'Controle de Usuários', // Modifique aqui o Título Geral do gráfico
-                        font: { size: 16 }
-                    }
-                }
-            }
-        });
-
-        // 2. Gráfico de Equipamentos
+        // 1. Gráfico de Equipamentos
         const ctxEquipamentos = document.getElementById('graficoEquipamentos').getContext('2d');
         const graficoEquipamentos = new Chart(ctxEquipamentos, {
             type: 'doughnut',
