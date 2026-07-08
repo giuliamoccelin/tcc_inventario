@@ -16,6 +16,8 @@ $dados = mysqli_fetch_assoc($resultado);
 
 // 2. Processa a atualização quando o formulário é enviado
 if (isset($_POST['atualizar'])) {
+    // mysqli_real_escape_string serve para evitar SQL Injection, que é uma técnica de ataque onde o invasor
+    // insere código SQL malicioso em campos de entrada para manipular o banco de dados. 
     $at_cpf = mysqli_real_escape_string($conexao, $_POST['cpf']);
     $novo_nome = mysqli_real_escape_string($conexao, $_POST['nome']);
     $novo_email = mysqli_real_escape_string($conexao, $_POST['email']);
@@ -48,22 +50,25 @@ if (isset($_POST['atualizar'])) {
     }
 }
 
+if ($email == 'admin@iffar.edu.br') {
+    $msg = "Você não pode excluir a conta do administrador principal.";
+} else {
+    //excluir conta permanentemente
+    if (isset($_POST['excluir'])) {
+        $confirmar_senha = $_POST['senha_antiga'];
 
-//excluir conta permanentemente
-if (isset($_POST['excluir'])) {
-    $confirmar_senha = $_POST['senha_antiga'];
-
-    if (password_verify($confirmar_senha, $dados['senha'])) {
-        $sql_delete = "DELETE FROM usuario WHERE email = '$email'";
-        if (mysqli_query($conexao, $sql_delete)) {
-            session_destroy();
-            header("Location: index.php");
-            exit();
+        if (password_verify($confirmar_senha, $dados['senha'])) {
+            $sql_delete = "DELETE FROM usuario WHERE email = '$email'";
+            if (mysqli_query($conexao, $sql_delete)) {
+                session_destroy();
+                header("Location: index.php");
+                exit();
+            } else {
+                $msg = "Erro técnico ao excluir conta.";
+            }
         } else {
-            $msg = "Erro técnico ao excluir conta.";
+            $msg = "Confirmação falhou: A senha antiga não confere";
         }
-    } else {
-        $msg = "Confirmação falhou: A senha antiga não confere";
     }
 }
 
@@ -106,7 +111,7 @@ if (isset($_POST['excluir'])) {
                                                                 } ?>" readonly> </p>
                 </div>
                 <div class="grupo">
-                    <label>Novo E-mail de Contato:</label>
+                    <label>E-mail de Contato:</label>
                     <p><input type="email" name="email" value="<?php echo $email; ?>"> </p>
                 </div>
                 <strong>Confirmação de Segurança:</strong>
@@ -122,7 +127,10 @@ if (isset($_POST['excluir'])) {
                     <p><input type="password" name="senha" placeholder="Deixe vazio para manter"> </p>
                 </div>
                 <button type="submit" class="btn-salvar" name="atualizar">Salvar Alterações</button><br>
-                <button type="submit" class="btn-excluir" name="excluir">Excluir Conta Permanentemente</button>
+                <?php if ($email == 'admin@iffar.edu.br') {
+                } else {
+                    echo '<button type="submit" class="btn-excluir" name="excluir">Excluir Conta Permanentemente</button>';
+                } ?>
             </form>
         </div>
 

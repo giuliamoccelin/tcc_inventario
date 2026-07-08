@@ -16,6 +16,8 @@ $dados = mysqli_fetch_assoc($resultado);
 
 // 2. Processa a atualização quando o formulário é enviado
 if ($_POST) {
+// mysqli_real_escape_string serve para evitar SQL Injection, que é uma técnica de ataque onde o invasor
+// insere código SQL malicioso em campos de entrada para manipular o banco de dados. 
     $hostname = mysqli_real_escape_string($conexao, $_POST['hostname']);
     $ipv4 = mysqli_real_escape_string($conexao, $_POST['ipv4']);
     $mac = mysqli_real_escape_string($conexao, $_POST['mac']);
@@ -108,10 +110,9 @@ if ($_POST) {
                     Tipo de equipamento: <br>
                     <p><input type="text" name="tipo_equipamento" value="<?php echo $dados['tipo_equipamento']; ?>"></p>
                 </div>
-                <button class="btn-salvar" type="submit">Editar Máquina</button><br>
-                <div class="btn-voltar">
-                <a href="listar_maquinas.php"> <-- Voltar</a>
-                </div>
+                <button class="btn-salvar" type="submit">Editar Máquina</button><br><br>
+                <a id="voltar" href="listar_maquinas.php" name="Voltar a listar equipamentos">← Voltar para Equipamentos</a>
+
             </div>
 
         </div>

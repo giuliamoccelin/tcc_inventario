@@ -96,15 +96,22 @@ $inicio = ($pagina_atual - 1) * $por_pagina;
                         }
                         echo "</td>";
                         echo "<td>{$dados['data_registro']}</td>";
-                        echo "<td>
-                        <div class='opcoes'>
-                            <a href='feditar_usuario.php?id={$dados['id']}' title='Editar'><img src='editar.png' width='18'></a>
-                            <a href='deletar_usuario.php?id={$dados['id']}' onclick='return confirm(\"Deseja excluir este usuário?\")' title='Excluir'><img src='deletar.png' width='18'></a>
-                        </div>
-                      </td>";
+                        if ($dados['email'] == 'admin@iffar.edu.br') {
+                            echo "<td>Administrador</td>";
+                        } else if ($dados['email'] == $_SESSION['email']) {
+                            echo "<td>Eu</td>";
+                        } else {
+                            echo "<td>
+                            <div class='opcoes'>
+                                <a href='feditar_usuario.php?id={$dados['id']}' title='Editar'><img src='editar.png' width='18'></a>
+                                <a href='deletar_usuario.php?id={$dados['id']}' onclick='return confirm(\"Deseja excluir este usuário?\")' title='Excluir'><img src='deletar.png' width='18'></a>
+                            </div>
+                          </td>";
+                        }
                         echo "</tr>";
                     }
                     ?>
+
                 </tbody>
             </table>
 

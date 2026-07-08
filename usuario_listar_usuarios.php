@@ -25,7 +25,6 @@ if (!isset($_SESSION['email'])) {
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Nome</th>
                         <th>CPF</th>
                         <th>E-mail</th>
@@ -42,7 +41,6 @@ if (!isset($_SESSION['email'])) {
                     while ($dados = mysqli_fetch_assoc($resultado)) {
 
                         echo "<tr>";
-                        echo "<td><strong>{$dados['id']}</strong></td>";
                         echo "<td>{$dados['nome']}</td>";
                         echo "<td>{$dados['cpf']}</td>";
                         echo "<td>{$dados['email']}</td>";

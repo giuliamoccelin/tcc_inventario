@@ -97,7 +97,9 @@ if ($_POST) {
                     Tipo de Equipamento: <br>
                     <p><input type="text" name="tipo_equipamento" placeholder="Ex.: Notebook"></p>
                 </div>
-                <button class="btn-salvar" type="submit">Cadastrar Equipamento</button><br>
+                <button class="btn-salvar" type="submit">Cadastrar Equipamento</button><br><br>
+                <a id="voltar" href="listar_maquinas.php" name="Voltar a listar Equipamentos">← Voltar para Equipamentos</a>
+
             </div>
 
         </div>

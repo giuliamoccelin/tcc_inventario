@@ -382,7 +382,7 @@ tr:hover {
     background-color: var(--primary-hover);
 }
 
-/* --- PAINEL DE FILTROS --- */
+/* --- PAINEL DE FILTROS --- 
 .painel-filtros {
     background: #f8f9fc;
     border: 1px solid #dde2f0;
@@ -505,3 +505,4 @@ tr:hover {
         display: block;
 
 }
+*/
