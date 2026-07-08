@@ -10,30 +10,27 @@ $dadosMenu = mysqli_fetch_assoc($resultado);
     </div>
 
     <div class="nav-links">
-        <button class="menu-toggle" id="menu-toggle">☰</button>
         <nav>
             <ul id="menu">
                 <li>
                     <a href="home.php">HOME</a>
                 </li>
                 <li>
-                    <a href="#">PERFIL ▼</a>
+                    <a href="usuario_listar_maquinas.php">EQUIPAMENTOS</a>
+                </li>
+                <!--<li>
+                    <a href="usuario_listar_usuarios.php">USUÁRIOS</a>
+                </li>-->
+                <li>
+                    <a href="usuario_listar_manutencao.php">MANUTENÇÕES</a>
+                </li>
+                <li>
+                    <a href="#"><img src="perfil.png" alt="Perfil" width="16" height="16">ㅤPERFIL</a>
                     <ul>
                         <li><a href="usuario_perfil.php">VER PERFIL</a></li>
                         <li><a href="logout.php">SAIR DA CONTA</a></li>
                     </ul>
                 </li>
-                <li>
-                    <a href="usuario_listar_maquinas.php">LISTAR EQUIPAMENTOS</a>
-                </li>
-                <li>
-                    <a href="usuario_listar_usuarios.php">LISTAR USUÁRIOS</a>
-                </li>
-                <li>
-                    <a href="usuario_listar_manutencao.php">LISTAR MANUTENÇÕES</a>
-                </li>
-                <?php echo "Olá, " . $dadosMenu['nome']; ?>
-
             </ul>
         </nav>
     </div>

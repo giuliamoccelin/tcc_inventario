@@ -39,11 +39,8 @@ if ($_POST) {
 <html lang="pt-br">
 
 <head>
-    <title> MNET-IFFar </title>
-    <link rel="icon" type="image/png" href="2MNET-logo.png">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8">
-
+    <?php include "head.php"; // Inclui o head de navegação 
+    ?>
 </head>
 
 <body>
@@ -100,7 +97,9 @@ if ($_POST) {
                     Tipo de Equipamento: <br>
                     <p><input type="text" name="tipo_equipamento" placeholder="Ex.: Notebook"></p>
                 </div>
-                <button class="btn-salvar" type="submit">Cadastrar Equipamento</button><br>
+                <button class="btn-salvar" type="submit">Cadastrar Equipamento</button><br><br>
+                <a id="voltar" href="listar_maquinas.php" name="Voltar a listar Equipamentos">← Voltar para Equipamentos</a>
+
             </div>
 
         </div>

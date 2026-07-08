@@ -37,6 +37,7 @@ if ($_POST) {
                        VALUES ('$id_equipamento', '$id_usuario', '$tipo_manutencao', '$descricao', '$custo')";
 
         mysqli_query($conexao, $sql_insert);
+        header("location:listar_manutencao.php");
 
         if (mysqli_affected_rows($conexao) > 0) {
             $msg = "Manutenção cadastrada com sucesso!";
@@ -52,10 +53,8 @@ if ($_POST) {
 <html lang="pt-br">
 
 <head>
-    <title> MNET-IFFar </title>
-    <link rel="icon" type="image/png" href="2MNET-logo.png">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8">
+    <?php include "head.php"; // Inclui o head de navegação 
+    ?>
 </head>
 
 <body>
@@ -71,8 +70,6 @@ if ($_POST) {
                 <div class="info">
                     <p><b><?php echo $msg; ?></b></p>
                 </div>
-                ID:<br>
-                <p><input type="text" name="id" value="<?php echo $dados_equip['id']; ?>" readonly></p>
                 <div class="grupo">
                     Equipamento: <br>
                     <p><input type="text" name="hostname" value="<?php echo $dados_equip['hostname']; ?>" readonly></p>
@@ -98,8 +95,8 @@ if ($_POST) {
                     Custo: <br>
                     <p><input type="number" name="custo" placeholder="Ex.: 150.00" step="0.01" required></p>
                 </div>
-
-                <button class="btn-salvar" type="submit">Cadastrar Manutenção</button><br>
+                <button class="btn-salvar" type="submit">Cadastrar Manutenção</button><br><br>
+                <a id="voltar" href="listar_maquinas.php" name="Voltar a listar Equipamentos">← Voltar para Equipamentos</a>
             </div>
         </div>
     </form>

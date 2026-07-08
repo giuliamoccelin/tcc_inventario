@@ -74,11 +74,8 @@ if (isset($_POST['excluir'])) {
 <html lang="pt-br">
 
 <head>
-    <title> MNET-IFFar </title>
-    <link rel="icon" type="image/png" href="2MNET-logo.png">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8">
-
+    <?php include "head.php"; // Inclui o head de navegação 
+    ?>
 </head>
 
 <body>
@@ -110,7 +107,7 @@ if (isset($_POST['excluir'])) {
                                                                 } ?>" readonly> </p>
                 </div>
                 <div class="grupo">
-                    <label>Novo E-mail de Contato:</label>
+                    <label>E-mail de Contato:</label>
                     <p><input type="email" name="email" value="<?php echo $email; ?>"> </p>
                 </div>
                 <strong>Confirmação de Segurança:</strong>

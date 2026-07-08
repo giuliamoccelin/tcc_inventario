@@ -13,11 +13,8 @@ if (!isset($_SESSION['email'])) {
 <html lang="pt-br">
 
 <head>
-    <title> MNET-IFFar </title>
-    <link rel="icon" type="image/png" href="2MNET-logo.png">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8">
-
+    <?php include "head.php"; // Inclui o head de navegação 
+    ?>
 </head>
 
 <body>
@@ -28,7 +25,6 @@ if (!isset($_SESSION['email'])) {
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Nome</th>
                         <th>CPF</th>
                         <th>E-mail</th>
@@ -45,7 +41,6 @@ if (!isset($_SESSION['email'])) {
                     while ($dados = mysqli_fetch_assoc($resultado)) {
 
                         echo "<tr>";
-                        echo "<td><strong>{$dados['id']}</strong></td>";
                         echo "<td>{$dados['nome']}</td>";
                         echo "<td>{$dados['cpf']}</td>";
                         echo "<td>{$dados['email']}</td>";
