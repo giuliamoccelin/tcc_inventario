@@ -1,6 +1,5 @@
 <?php
 include "connect.php";
-
 $msg = "";
 session_start();
 
@@ -10,63 +9,49 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
-?>
-<!DOCTYPE html>
-<html lang="pt-br">
-
-<head>
-    <?php include "head.php"; // Inclui o head de navegação 
-    ?>
-</head>
-
-<body>
-    <?php include "menu.php"; // Inclui o menu de navegação 
-    ?>
-<?php
 /**
  * NmapScanner
  * ------------
- * Executa uma varredura de rede via nmap e retorna, para cada dispositivo
- * encontrado: endereço IPv4, endereço MAC, marca/fabricante (vendor),
- * hostname e sistema operacional estimado.
+ * Executa uma varredura de rede utilizando o Nmap e devolve, para cada
+ * dispositivo encontrado: endereço IPv4, endereço MAC, marca/fabricante
+ * (vendor), hostname e sistema operacional estimado.
  *
  * Requisitos:
- *  - nmap instalado no servidor (ex: /usr/bin/nmap)
- *  - Permissão para o usuário do Apache/PHP (www-data) executar nmap
- *    com privilégios elevados (necessário para -O e detecção de MAC via ARP).
- *    Veja as observações no final do arquivo.
+ *  - O Nmap precisa estar instalado no computador que está rodando o
+ *    Apache/PHP (nesta máquina, em C:\Arquivos de Programas (x86)\Nmap).
+ *  - No Windows, quem precisa ter privilégio de administrador é o
+ *    próprio processo do Apache/PHP (é necessário rodar o XAMPP "como
+ *    administrador"), pois a detecção de sistema operacional e de
+ *    endereço MAC depende disso.
  */
-
 class NmapScanner
 {
     private string $nmapPath;
 
-    public function __construct(string $nmapPath = '/usr/bin/nmap')
+    public function __construct(string $nmapPath)
     {
         $this->nmapPath = $nmapPath;
     }
 
     /**
-     * Executa a varredura em uma sub-rede (ex: "192.168.1.0/24")
-     * e retorna um array associativo com os dados de cada host ativo.
+     * Executa a varredura em uma sub-rede (por exemplo, "192.168.1.0/24")
+     * e devolve um array associativo com os dados de cada host ativo.
      */
     public function scanNetwork(string $subnet): array
     {
         $subnetEscapado = escapeshellarg($subnet);
         $arquivoSaida = tempnam(sys_get_temp_dir(), 'nmap_') . '.xml';
 
-        // -O         : tenta detectar o sistema operacional. Isso EXIGE uma
-        //              varredura de portas de verdade (o nmap usa as respostas
-        //              das portas para inferir o SO) — por isso não usamos "-sn"
-        //              aqui, que faria só descoberta de host sem varrer portas.
-        // --osscan-guess : aumenta a chance de "chutar" um SO quando não há certeza total
-        // -oX        : salva a saída em formato XML (muito mais confiável de parsear que texto puro)
-        //
-        // OBS: NÃO usamos "sudo" aqui. No Windows não existe esse conceito da
-        // mesma forma que no Linux — quem precisa ter privilégio de administrador
-        // é o próprio processo do Apache/PHP (rode o XAMPP como administrador).
-        // Em ambiente Linux, o equivalente seria configurar o sudoers para o
-        // usuário www-data poder rodar o nmap sem senha.
+        // -O             : tenta detectar o sistema operacional do
+        //                  dispositivo. Essa detecção exige uma varredura
+        //                  de portas de verdade, por isso não é usado o
+        //                  parâmetro "-sn", que faria apenas a descoberta
+        //                  de hosts sem testar nenhuma porta.
+        // --osscan-guess : aumenta a chance do nmap arriscar um sistema
+        //                  operacional quando não há certeza total.
+        // -oX            : salva o resultado em formato XML, que é bem
+        //                  mais fácil de interpretar do que o texto
+        //                  normal exibido no terminal.
         $comando = sprintf(
             '%s -O --osscan-guess -oX %s %s 2>&1',
             escapeshellarg($this->nmapPath),
@@ -79,19 +64,20 @@ class NmapScanner
         if ($codigoRetorno !== 0 || !file_exists($arquivoSaida)) {
             $mensagem = implode("\n", $saidaComando);
 
-            // No Windows, o terminal costuma usar CP-850/CP-1252 em vez de UTF-8,
-            // o que corrompe acentos (ex: "n�o" em vez de "não"). Convertemos aqui
-            // para exibir a mensagem de erro corretamente.
+            // No Windows, o terminal costuma devolver o texto na
+            // codificação CP-850 em vez de UTF-8, o que corrompe os
+            // acentos. Por isso a mensagem é convertida antes de ser
+            // exibida na tela.
             if (PHP_OS_FAMILY === 'Windows' && function_exists('mb_convert_encoding')) {
                 $convertido = @mb_convert_encoding($mensagem, 'UTF-8', 'CP850');
+
                 if ($convertido !== false) {
                     $mensagem = $convertido;
                 }
             }
 
             throw new RuntimeException(
-                "Erro ao executar o nmap: {$mensagem}\n" .
-                "Comando executado: {$comando}"
+                "Erro ao executar o nmap: {$mensagem}\nComando executado: {$comando}"
             );
         }
 
@@ -102,7 +88,8 @@ class NmapScanner
     }
 
     /**
-     * Faz o parse do XML gerado pelo nmap e extrai os campos desejados.
+     * Faz o parse do XML gerado pelo nmap e extrai os campos desejados
+     * para cada dispositivo encontrado.
      */
     private function parseXml(string $arquivoXml): array
     {
@@ -115,49 +102,59 @@ class NmapScanner
         $dispositivos = [];
 
         foreach ($xml->host as $host) {
-            // Ignora hosts que não estão "up"
+            // Ignora hosts que não responderam ao escaneamento.
             $estado = (string) $host->status['state'];
+
             if ($estado !== 'up') {
                 continue;
             }
 
             $dispositivo = [
-                'ipv4'                => null,
-                'mac'                 => null,
-                'marca'               => null,
-                'hostname'            => null,
-                'sistema_operacional' => null,
+                'ipv4' => '',
+                'mac' => '',
+                'marca' => '',
+                'hostname' => '',
+                'sistema_operacional' => '',
             ];
 
-            // Endereços (pode haver mais de um: ipv4 e mac)
+            // Um mesmo host pode ter mais de um endereço listado (IPv4 e
+            // MAC), por isso é necessário percorrer a lista de endereços.
             foreach ($host->address as $endereco) {
                 $tipo = (string) $endereco['addrtype'];
 
                 if ($tipo === 'ipv4') {
                     $dispositivo['ipv4'] = (string) $endereco['addr'];
-                } elseif ($tipo === 'mac') {
+                }
+
+                if ($tipo === 'mac') {
                     $dispositivo['mac'] = (string) $endereco['addr'];
-                    // O nmap só preenche "vendor" quando reconhece o fabricante
-                    // pelo prefixo do MAC (OUI). Se não reconhecer, fica vazio.
-                    $dispositivo['marca'] = isset($endereco['vendor'])
-                        ? (string) $endereco['vendor']
-                        : null;
+
+                    // O nmap só preenche o atributo "vendor" quando
+                    // reconhece o fabricante pelo prefixo do endereço
+                    // MAC (chamado de OUI). Quando não reconhece, o
+                    // campo simplesmente não existe no XML.
+                    if (isset($endereco['vendor'])) {
+                        $dispositivo['marca'] = (string) $endereco['vendor'];
+                    }
                 }
             }
 
-            // Hostname (pode não existir, dependendo do dispositivo/DNS reverso)
+            // O hostname pode não existir, dependendo do dispositivo e
+            // da configuração de DNS reverso da rede.
             if (isset($host->hostnames->hostname)) {
                 $dispositivo['hostname'] = (string) $host->hostnames->hostname['name'];
             }
 
-            // Sistema operacional: o nmap pode sugerir vários "osmatch" com
-            // percentuais de precisão diferentes. Aqui pegamos o de maior precisão.
+            // O nmap pode sugerir mais de um "osmatch", cada um com um
+            // percentual de precisão diferente. Aqui é escolhido o
+            // palpite com a maior precisão.
             if (isset($host->os->osmatch)) {
-                $melhorNome = null;
+                $melhorNome = '';
                 $melhorPrecisao = 0;
 
                 foreach ($host->os->osmatch as $osmatch) {
                     $precisao = (int) $osmatch['accuracy'];
+
                     if ($precisao > $melhorPrecisao) {
                         $melhorPrecisao = $precisao;
                         $melhorNome = (string) $osmatch['name'];
@@ -174,30 +171,134 @@ class NmapScanner
     }
 }
 
-/* =========================================================
- * EXEMPLO DE USO
- * ========================================================= */
+// Caminho do executável do nmap nesta máquina. Caso o programa esteja
+// instalado em outro local, ou o sistema seja usado em outro
+// computador, esse caminho precisa ser ajustado.
+$caminho_nmap = 'C:\Program Files (x86)\\Nmap\\nmap.exe';
 
-try {
-    // ATENÇÃO: ajuste esse caminho para o local real do nmap.exe na sua máquina.
-    // Descubra rodando "where nmap" no Prompt de Comando.
-    // Em Linux/servidor seria algo como '/usr/bin/nmap'.
-    $scanner = new NmapScanner('C:\\Program Files (x86)\\Nmap\\nmap.exe');
-    $dispositivos = $scanner->scanNetwork('192.168.1.0/24');
-
-    foreach ($dispositivos as $d) {
-        echo "IPv4: "                . ($d['ipv4'] ?? 'N/D') . "\n";
-        echo "MAC: "                 . ($d['mac'] ?? 'N/D') . "\n";
-        echo "Marca (Vendor): "      . ($d['marca'] ?? 'N/D') . "\n";
-        echo "Hostname: "            . ($d['hostname'] ?? 'N/D') . "\n";
-        echo "Sistema Operacional: " . ($d['sistema_operacional'] ?? 'N/D') . "\n";
-        echo str_repeat('-', 40) . "\n";
+/**
+ * Recebe um valor vindo do escaneamento e devolve um texto para exibir
+ * na tabela. Quando o Nmap não consegue descobrir a informação (o que é
+ * comum com hostname, MAC e marca, já que dependem de DNS reverso e de
+ * privilégio de administrador), o valor chega vazio, e essa função
+ * mostra um aviso ao invés de deixar a célula em branco.
+ */
+function textoParaExibicao(string $valor): string
+{
+    if ($valor === "") {
+        return "Não identificado";
     }
-} catch (Exception $e) {
-    echo "Erro: " . $e->getMessage();
+
+    return $valor;
+}
+
+$dispositivos_encontrados = [];
+$rede_pesquisada = "";
+
+// O formulário de escaneamento é enviado pelo método POST.
+if ($_POST) {
+    $rede_pesquisada = $_POST['subnet'];
+
+    try {
+        $scanner = new NmapScanner($caminho_nmap);
+        $dispositivos_encontrados = $scanner->scanNetwork($rede_pesquisada);
+
+        if (count($dispositivos_encontrados) === 0) {
+            $msg = "Nenhum dispositivo respondeu dentro da faixa informada.";
+        }
+    } catch (Exception $erro) {
+        $msg = "Erro ao escanear a rede: " . $erro->getMessage();
+    }
 }
 ?>
+<!DOCTYPE html>
+<html lang="pt-br">
 
+<head>
+    <?php include "head.php"; // Inclui o head de navegação 
+    ?>
+</head>
+
+<body>
+    <?php include "menu.php"; // Inclui o menu de navegação 
+    ?>
+
+    <div class="fundo-tabela">
+        <div class="card-tabela">
+
+            <div class="titulo">
+                <h2>Escanear Equipamentos</h2>
+            </div>
+
+            <!-- Formulário onde o usuário informa a faixa de rede a ser escaneada -->
+            <div class="painel-filtros">
+                <div class="filtros-titulo">Escanear rede</div>
+                <form method="post" action="">
+                    <div class="filtros-grid">
+                        <div class="filtro-grupo">
+                            <label for="subnet">Rede a ser escaneada</label>
+                            <input type="text" id="subnet" name="subnet" placeholder="Ex.: 192.168.1.0/24"
+                                value="<?php echo htmlspecialchars($rede_pesquisada); ?>" required>
+                        </div>
+                    </div>
+                    <div class="filtros-acoes" style="margin-top: 12px;">
+                        <button type="submit" class="btn-filtrar">Escanear</button>
+                    </div>
+                </form>
+            </div>
+
+            <?php if ($msg !== "") { ?>
+                <p class="info-resultado"><?php echo $msg; ?></p>
+            <?php } ?>
+
+            <!-- Tabela com os dispositivos encontrados, exibida apenas depois de um escaneamento -->
+            <?php if (count($dispositivos_encontrados) > 0) { ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hostname</th>
+                            <th>IPv4</th>
+                            <th>MAC</th>
+                            <th>Marca</th>
+                            <th>Sistema Operacional</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($dispositivos_encontrados as $dispositivo) { ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars(textoParaExibicao($dispositivo['hostname'])); ?></td>
+                                <td><?php echo htmlspecialchars($dispositivo['ipv4']); ?></td>
+                                <td><?php echo htmlspecialchars(textoParaExibicao($dispositivo['mac'])); ?></td>
+                                <td><?php echo htmlspecialchars(textoParaExibicao($dispositivo['marca'])); ?></td>
+                                <td><?php echo htmlspecialchars(textoParaExibicao($dispositivo['sistema_operacional'])); ?></td>
+                                <td>
+                                    <div class="opcoes">
+                                        <!--
+                                            Os dados do dispositivo são enviados pela própria URL
+                                            (método GET) para a tela de cadastro. Quando algum campo
+                                            não foi identificado pelo Nmap, ele chega vazio, e o
+                                            usuário pode preenchê-lo manualmente antes de salvar.
+                                        -->
+                                        <a class="btn-salvar" href="cadastro_maquina.php?hostname=<?php echo urlencode($dispositivo['hostname']); ?>&ipv4=<?php echo urlencode($dispositivo['ipv4']); ?>&mac=<?php echo urlencode($dispositivo['mac']); ?>&marca=<?php echo urlencode($dispositivo['marca']); ?>&so=<?php echo urlencode($dispositivo['sistema_operacional']); ?>">
+                                            Cadastrar
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+                <p class="info-resultado">
+                    Os campos marcados como "Não identificado" não foram encontrados pelo Nmap.
+                    Isso costuma acontecer quando o programa não está sendo executado com
+                    privilégio de administrador. Você pode preenchê-los manualmente na tela
+                    de cadastro antes de salvar.
+                </p>
+            <?php } ?>
+
+        </div>
+    </div>
 </body>
 
 </html>
